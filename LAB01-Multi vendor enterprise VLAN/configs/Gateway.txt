@@ -1,0 +1,126 @@
+GATEWAY
+
+#INERFACES:
+ether1 - WAN
+ether2 - SERVER-TRUNK LINK
+ether3 - MAIN BUILDING TRUNK LINK
+ether4 - ADMIN BUILDING TRUNK LINK
+ether5 - MANAGEMENT 
+
+
+Bridge -> bridge
+New -> general -> name -> Bridge_Lan
+
+interfaces: VLAN
+new -> general
+comment: admin_vlan loop
+name: admin_vlan 10
+vlan ID: 10
+interface: bridge_vlan
+
+new -> general
+comment: accounts_vlan loop
+name: accounts_vlan 20
+vlan ID: 20
+interface: bridge_vlan
+
+new -> general
+comment: staff_vlan loop
+name: staff_vlan 30
+vlan ID: 30
+interface: bridge_vlan
+
+new -> general
+comment: HR-Customer-care_vlan loop
+name: HR-Customer-care_vlan 40
+vlan ID: 40
+interface: bridge_vlan
+
+new -> general
+comment: admin_bulding_wifi loop
+name: admin_bulding_wifi 50
+vlan ID: 50
+interface: bridge_vlan
+
+new -> general
+comment: main_bulding_wifi loop
+name: main_bulding_wifi 60
+vlan ID: 60
+interface: bridge_vlan
+
+new -> general
+comment: management loop
+name: management 100
+vlan ID: 100
+interface: bridge_vlan
+
+
+Bridge -> ports -> new -> general
+interface: ether2-server_trunk link (ether3, ether4)
+bridge: bridge_vlan
+VLAN: -> PVID -> 1
+Ingress filtering: ticked
+
+bridge -> VLANS -> New
+bridge: bridge_vlan
+VLAN IDs: 10
+Tagged: bridge_vlan
+        ether2
+	ether4
+
+
+bridge -> VLANS -> New
+bridge: bridge_vlan		
+VLAN IDs: 20
+Tagged: bridge_vlan
+        ether2
+	ether4
+
+
+bridge -> VLANS -> New
+bridge: bridge_vlan		
+VLAN IDs: 30
+Tagged: bridge_vlan
+        ether2
+        ether3		
+
+
+bridge -> VLANS -> New
+bridge: bridge_vlan		
+VLAN IDs: 40
+Tagged: bridge_vlan
+        ether2
+	ether3
+
+
+bridge -> VLANS -> New
+bridge: bridge_vlan		
+VLAN IDs: 50
+Tagged: bridge_vlan
+        ether2
+	ether4	
+	
+
+bridge -> VLANS -> New
+bridge: bridge_vlan	
+VLAN IDs: 60
+Tagged: bridge_vlan
+        ether2
+	ether3	
+	
+
+bridge -> VLANS -> New
+bridge: bridge_vlan	
+VLAN IDs: 100
+Tagged: bridge_vlan
+        ether2
+	ether3	
+	ether4
+	ether5
+		
+bridge -> bridge -> bridge_vlan
+VLAN filtering: ticked
+ethertype: 0x8100
+PVID: 1
+frame types: admit all
+ingress filtering: ticked

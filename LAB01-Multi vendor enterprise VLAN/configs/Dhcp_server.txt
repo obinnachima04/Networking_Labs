@@ -1,0 +1,110 @@
+DHCP-SERVER
+
+#basic settings;user local access,ssh,lines configurations
+
+en
+conf t
+hostname SERVER
+username obinna privilege 15 secret login
+ip domain-name eroute.local
+crypto key generate rsa general-keys modulus 4096
+ip ssh ver 2
+lin con 0
+login local
+logging synchronous
+exec-timeout 5
+lin vty 0 4
+login local
+logging synchronous
+exec-timeout 5
+transport input ssh
+
+ip dhcp excluded-add 172.16.10.1 172.16.10.10
+ip dhcp excluded-add 172.16.20.1 172.16.20.10
+ip dhcp excluded-add 172.16.30.1 172.16.30.10
+ip dhcp excluded-add 172.16.40.1 172.16.40.10
+ip dhcp excluded-add 10.1.1.1 10.1.1.10
+ip dhcp excluded-add 10.2.2.1 10.2.2.10
+ip dhcp excluded-add 192.168.100.1 192.168.100.10
+
+ip dhcp pool ADMIN_LAN
+network 172.16.10.0 255.255.255.0
+dns-server 172.16.10.1 8.8.8.8
+default-router 172.16.10.1 
+domain-name eroute.local
+
+ip dhcp pool ACCOUNTS_LAN
+network 172.16.20.0 255.255.255.0
+dns-server 172.16.20.1 8.8.8.8
+default-router 172.16.20.1
+domain-name eroute.local
+
+ip dhcp pool STAFF_LAN
+network 172.16.30.0 255.255.255.0
+default-router 172.16.30.1
+dns-server 172.16.30.1 8.8.8.8
+domain-name eroute.local
+
+ip dhcp pool HR-CUSTOMER-CARE_LAN
+network 172.16.40.0 255.255.255.0
+default-router 172.16.40.1
+dns-server 172.16.40.1 8.8.8.8
+domain-name eroute.local
+
+ip dhcp pool MANAGEMENT_LAN
+network 192.168.100.0 255.255.255.0
+default-router 192.168.100.1
+dns-server 192.168.100.1 8.8.8.8
+domain-name eroute.local
+
+ip dhcp pool ADMIN-BUILDING_WIFI_LAN
+network 10.1.1.0 255.255.255.0
+default-router 10.1.1.1
+dns-server 10.1.1.1 8.8.8.8
+domain-name eroute.local
+
+ip dhcp pool MAIN-BULDING_WIFI_LAN
+network 10.2.2.0 255.255.255.0
+default-router 10.2.2.1
+dns-server 10.2.2.1 8.8.8.8
+domain-name eroute.local
+
+int gi1
+no shut
+
+int gi1.10
+description ADMINS_LAN_GATEWAY
+encapsulation dot1q 10
+ip add 172.16.10.1 255.255.255.0
+
+int gi1.20
+description ACCOUNTS_LAN_GATEWAY 
+encapsulation dot1q 20
+ip add 172.16.20.1 255.255.255.0
+
+int gi1.30
+description STAFF_LAN_GATEWAY
+encapsulation dot1q 30
+ip add 172.16.30.1 255.255.255.0
+
+int gi1.40
+description HR-CUSTOMER-CARE_LAN_GATEWAY 
+encapsulation dot1q 40
+ip add 172.16.40.1 255.255.255.0
+
+int gi1.50
+description ADMIN-BULDING_WIFI_LAN_GATEWAY 
+encapsulation dot1q 50
+ip add 10.1.1.1 255.255.255.0
+
+int gi1.60
+description MAIN-BULDING_WIFI_LAN_GATEWAY 
+encapsulation dot1q 60
+ip add 10.2.2.1 255.255.255.0
+
+int gi1.100
+description MANAGEMENT_LAN_GATEWAY 
+encapsulation dot1q 100
+ip add 192.168.100.1 255.255.255.0
+
+do wr

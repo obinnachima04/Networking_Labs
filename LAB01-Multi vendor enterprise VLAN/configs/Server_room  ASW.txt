@@ -1,0 +1,45 @@
+SERVER-ROOM-ASW
+
+#basic settings;user local access,ssh,lines configs
+
+en
+conf t
+hostname SERVER-ROOM-ASW
+username obinna privilege 15 secret login
+ip domain-name eroute.local
+crypto key generate rsa general-keys modulus 2048
+ip ssh ver 2
+lin con 0
+login local
+logging synchronous
+exec-timeout 5
+lin vty 0 4
+login local
+logging synchronous
+exec-timeout 5
+transport input ssh
+exit
+
+#exec mode
+vlan database
+vlan 100 name MANAGEMENT
+exit
+
+#config mode
+int fa1/1
+description LINK-TO-GATEWAY
+switchport mode trunk
+no shut
+
+int fa1/15
+switchport access vlan 100
+no shut
+
+int vlan 100
+ip add 192.168.100.4 255.255.255.0
+no shut
+exit
+
+ip default-gateway 192.168.100.1
+
+do wr
