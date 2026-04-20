@@ -1,11 +1,14 @@
 GATEWAY
 
+#After each section configuration, click "apply" and "ok" button
+
 #INERFACES:
 ether1 - WAN
 ether2 - SERVER-TRUNK LINK
 ether3 - MAIN BUILDING TRUNK LINK
 ether4 - ADMIN BUILDING TRUNK LINK
 ether5 - MANAGEMENT 
+ether8 - LAN_WAN_LINK
 
 
 Bridge -> bridge
@@ -54,6 +57,12 @@ name: management 100
 vlan ID: 100
 interface: bridge_vlan
 
+new -> general
+comment: lan_wan_link
+name: lan_wan_link 150
+vlan ID: 150
+interface: bridge_vlan
+
 
 Bridge -> ports -> new -> general
 interface: ether2-server_trunk link (ether3, ether4)
@@ -66,7 +75,7 @@ bridge: bridge_vlan
 VLAN IDs: 10
 Tagged: bridge_vlan
         ether2
-	ether4
+	    ether4
 
 
 bridge -> VLANS -> New
@@ -74,7 +83,7 @@ bridge: bridge_vlan
 VLAN IDs: 20
 Tagged: bridge_vlan
         ether2
-	ether4
+	    ether4
 
 
 bridge -> VLANS -> New
@@ -90,7 +99,7 @@ bridge: bridge_vlan
 VLAN IDs: 40
 Tagged: bridge_vlan
         ether2
-	ether3
+	    ether3
 
 
 bridge -> VLANS -> New
@@ -98,7 +107,7 @@ bridge: bridge_vlan
 VLAN IDs: 50
 Tagged: bridge_vlan
         ether2
-	ether4	
+	    ether4	
 	
 
 bridge -> VLANS -> New
@@ -106,7 +115,7 @@ bridge: bridge_vlan
 VLAN IDs: 60
 Tagged: bridge_vlan
         ether2
-	ether3	
+	    ether3	
 	
 
 bridge -> VLANS -> New
@@ -114,9 +123,16 @@ bridge: bridge_vlan
 VLAN IDs: 100
 Tagged: bridge_vlan
         ether2
-	ether3	
-	ether4
-	ether5
+	    ether3	
+	    ether4
+	    ether5
+
+bridge -> VLANS -> New
+bridge: bridge_vlan	
+VLAN IDs: 150
+Tagged: bridge_vlan
+        ether2
+       
 		
 bridge -> bridge -> bridge_vlan
 VLAN filtering: ticked
@@ -124,3 +140,40 @@ ethertype: 0x8100
 PVID: 1
 frame types: admit all
 ingress filtering: ticked
+
+
+#Creating NAT firewall Rule
+IP -> Firewall -> NAT -> New
+Chain - srcnat
+Action - Action - Masquerade
+
+#creating IP addresses for the MANAGEMENT_LAN and the LAN_WAN_LINK
+
+#for MANGEMENT_LAN
+IP -> Addresses -> New
+Address - 192.168.100.2/24
+Interface - management-vlan
+
+#for LAN_WAN_LINK
+IP -> Addresses -> New
+Address - 192.168.150.1/30
+Interface - LAN_WAN_GATEWAY
+
+
+#Creating DNS Resolver server (used google server)
+IP -> DNS -> Servers -> +
+8.8.8.8
+Allow Remote Requests - tick (this allows for domain-name to ip-address resolve)
+
+
+#Creating static routes for the LAN subnets.
+#You can create for a specific subnet or use route summary ip for all the subnets
+
+IP -> Routes -> New
+#for the LAN Subnets
+Dst.address - 172.16.0.0/16   #I used route summary so that all the subnets will have internet access
+gateway - 192.168.150.2       #LAN_WAN_GATEWAY IP of the dhcp-server
+
+#for the WIFI subnets
+Dst.address - 10.0.0.0/8
+gateway - 192.168.150.2 

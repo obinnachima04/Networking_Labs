@@ -105,6 +105,14 @@ ip add 10.2.2.1 255.255.255.0
 int gi1.100
 description MANAGEMENT_LAN_GATEWAY 
 encapsulation dot1q 100
-ip add 192.168.100.1 255.255.255.0
+ip add 192.168.100.1 255.255.255.0"
+
+int gi1.150
+description LAN_WAN_GATEWAY 
+encapsulation dot1q 150
+ip add 192.168.150.2 255.255.255.252
+exit
+
+ip route 0.0.0.0 0.0.0.0 192.168.150.1
 
 do wr
