@@ -1,0 +1,42 @@
+en
+conf t
+hostname R3
+lin con 0
+logging synchronous
+
+int g1/0
+ip add 192.168.77.4 255.255.255.248
+no shut
+
+int g0/0
+description LINK-TO-R2
+ip add 172.16.2.2 255.255.255.252
+no shut
+
+int s2/0
+description LINK-TO-R1
+clock rate 64000
+ip add 172.16.1.2 255.255.255.252
+no shut
+
+int l0
+ip add 3.3.3.3 255.255.255.255
+
+router ospf 1
+network 192.168.77.0 0.0.0.255 area 0
+network 3.3.3.3 0.0.0.0 area 0
+passive-interface l0
+
+router ospf 2
+network 172.16.0.0 0.0.255.255 area 1
+network 3.3.3.3 0.0.0.0 area 1
+passive-int l0
+default-information originate
+
+exit
+
+router ospf 1
+redistribute ospf 2 subnets
+
+router ospf 2
+redistribute ospf 1 subnets

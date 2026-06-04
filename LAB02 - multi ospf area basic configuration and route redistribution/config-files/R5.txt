@@ -1,0 +1,25 @@
+en
+conf t
+hostname R5
+lin con 0
+logging synchronous
+
+int f0/0
+ip add 192.168.77.2 255.255.255.248
+no shut
+
+int f0/1
+ip add 10.1.1.1 255.255.255.0
+no shut
+
+int l0
+ip add 5.5.5.5 255.255.255.255
+
+router ospf 1
+network 192.168.77.0 0.0.255.255 area 0
+network 10.1.1.0 0.0.0.255 area 0
+network 5.5.5.5 0.0.0.0 area 0
+passive-interface l0
+passive-interface f0/1
+
+exit

@@ -1,0 +1,30 @@
+en
+conf t
+hostname R1
+lin con 0
+logging synchronous
+
+int g0/0
+description LINK-TO-R2
+ip add 172.16.3.1 255.255.255.252
+no shut
+
+int g2/0
+description LINK-TO-LAN
+ip add 10.4.4.1 255.255.255.0
+no shut
+
+int s2/0
+description LINK-TO-R3
+ip add 172.16.1.1 255.255.255.252
+no shut
+
+int l0
+ip add 1.1.1.1 255.255.255.255
+
+router ospf 2
+network 172.16.0.0 0.0.255.255 area 1
+network 10.4.4.1 0.0.0.255 area 1
+network 1.1.1.1 0.0.0.0 area 1
+passive-int l0
+passive-int g2/0

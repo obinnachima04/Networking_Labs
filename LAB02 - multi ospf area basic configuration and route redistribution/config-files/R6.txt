@@ -1,0 +1,41 @@
+en
+conf t
+hostname R6
+lin con 0
+logging synchronous
+
+int g1/0
+ip add dhcp
+no shut
+
+int f0/0
+ip add 192.168.77.1 255.255.255.248
+no shut
+
+int l0
+ip add 6.6.6.6 255.255.255.255
+
+exit
+
+ip route 0.0.0.0 0.0.0.0 (ISP ip)
+
+router ospf 1
+network 192.168.77.0 0.0.0.255 area 0
+network 6.6.6.6 0.0.0.0 area 0
+passive-interface l0
+default-information originate
+
+conf t
+access-list 1 permit 192.168.77.0 0.0.0.255
+access-list 1 permit 10.0.0.0 0.0.0.255
+access-list 1 permit 172.16.0.0 0.0.255.255
+
+ip nat inside source list 1 int g1/0 overload
+
+int g1/0
+ip nat outside
+
+int f0/0
+ip nat inside
+
+
