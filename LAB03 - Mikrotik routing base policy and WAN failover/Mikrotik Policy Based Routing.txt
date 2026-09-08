@@ -1,0 +1,249 @@
+STEP 1: CRETATING AND DEFINING THE INTERFACES
+==============================================
+
+INTERFACES:
+   interfaces:
+   ether1 -> WAN1
+   ether2 -> WAN2
+   ether3 -> ADMIN_LAN
+   ether4 -> ANEX_LAN
+
+
+STEP 2: SETTING UP THE WAN INTERFACES
+=====================================
+
+IP -> DHCP CLIENT -> NEW
+   DHCP:
+     name: WAN1
+     interface: ether1_WAN1
+     ok
+
+     name: WAN2
+     interface: ether2_WAN2
+     ok
+
+STEP 3: SETTING THE LAN IP ADDRESS POOLS
+========================================
+
+IP -> ADDRESSES -> NEW
+    Address: 10.1.1.1/24
+    interface: ether3_ADMIN_LAN
+    ok
+
+    Address: 172.16.1.1/24
+    interface: ether4_ANEX_LAN
+    ok
+
+STEP 4: SETTING UP DHCP POOL ADDRESS FOR THE LANS
+=================================================
+
+IP -> DHCP SERVER -> DHCP -> DHCP SETUP
+    DHCP server interface: ether3_ADMIN_LAN (next)
+    DHCP Address space: 10.1.1.0/24 (next)
+    Gateway for DHCP Network: 10.1.1.1 (next)
+    Addresses to give out: 10.1.1.11 - 10.1.1.254 (next)
+    Send DNS - tick
+    DNS Servers - 8.8.8.8 (next)
+    lease time - default
+
+    DHCP server interface: ether4_ANEX_LAN (next)
+    DHCP Address space: 172.16.1.0/24 (next)
+    Gateway for DHCP Network: 172.16.1.1 (next)
+    Addresses to give out: 172.16.1.11 - 172.16.1.254 (next)
+    Send DNS - tick
+    DNS Servers - 1.1.1.1 (next)
+    lease time - default
+
+
+STEP 5:  CREATE THE ROUTING TABLES
+==================================
+Before configuring routes, you must define the custom routing tables for your LAN networks.
+
+ROUTING -> TABLES.
+    Click the + (Add) icon.
+    Set Name to to_WAN1 and check the FIB box. 
+    Click OK.
+
+    Click + again. 
+    Set Name to to_WAN2, check FIB
+    click OK.
+
+
+STEP 6:  CONFIGURE MANGLE 
+==========================
+This ensures LAN1 prefers WAN1, LAN2 prefers WAN2, but they can still communicate locally.
+
+Navigate to IP -> Firewall -> Mangle tab.
+    Add LAN-to-LAN bypass rules (so local traffic doesn't break):
+    Click +. 
+    Under General: 
+    Chain = prerouting
+    Src. Address = 10.1.1.0/24
+    Dst. Address = 172.16.1.0/24. 
+    Under Action: 
+    Action = accept. 
+    Click OK.
+
+    Click +. 
+    Under General: 
+    Chain = prerouting
+    Src. Address = 172.16.1.0/24
+    Dst. Address = 10.1.1.0/24. 
+    Under Action: 
+    Action = accept. 
+    Click OK.
+
+    Add LAN1 Routing Mark:
+    Click +
+    Under General:
+    Chain = prerouting
+    Src. Address = 10.1.1.0/24
+    Under Action: 
+    Action = mark routing 
+    New Routing Mark = to_WAN1.
+    Uncheck Passthrough
+    Click OK.
+
+    Add LAN2 Routing Mark:
+    Click +. 
+    Under General: 
+    Chain = prerouting
+    Src. Address = 172.16.1.0/24
+    Under Action: 
+    Action = mark routing
+    New Routing Mark = to_WAN2
+    Uncheck Passthrough
+    Click OK.
+
+
+STEP 7: SET UP PROBE(WAN TESTING) RECURSIVE ROUTES.
+===================================================
+ I used stable public DNS servers (Google 8.8.8.8 for WAN1, Cloudfare 1.1.1.1 for WAN2) as target hosts to verify true internet connectivity.
+Replace wan1_gw_ip and wan2_gw_ip with your actual gateway IPs.
+
+Go to IP -> Routes
+    click +.
+    Create virtual scopes to the targets: 
+    WAN1 Target: 
+    Dst. Address = 8.8.8.8/32
+    Gateway = wan1_gw_ip
+    Distance = 1
+    Scope = 10
+    Target Scope = 10
+    Routing Table = main
+    Click OK.
+
+    WAN2 Target
+    Dst. Address = 1.1.1.1/32
+    Gateway = wan2_gw_ip
+    Distance = 1
+    Scope = 10
+    Target Scope = 10
+    Routing Table = main
+    Click OK
+
+Create the main routing rules failover routes 
+-------------------------------------------------------------
+LAN1 (to_WAN1):
+    Primary
+    Dst. Address = 0.0.0.0/0
+    Gateway = 8.8.8.8
+    Check Gateway = ping
+    Distance = 1
+    Scope = 30
+    Target Scope = 11
+    Routing Table = WAN1
+
+Backup Failover to WAN2:
+    Dst. Address = 0.0.0.0/0
+    Gateway = 1.1.1.1
+    Check Gateway = ping
+    Distance = 2
+    Scope = 30
+    Target Scope = 11
+    Routing Table = WAN1
+
+LAN2 (to_WAN2):
+    Primary: 
+    Dst. Address = 0.0.0.0/0
+    Gateway = 1.1.1.1
+    Check Gateway = ping
+    Distance = 1
+    Scope = 30
+    Target Scope = 11
+    Routing Table = WAN2.
+
+Failover to WAN1:
+    Dst. Address = 0.0.0.0/0
+    Gateway = 8.8.8.8
+    Check Gateway = ping
+    Distance = 2
+    Scope = 30
+    Target Scope = 11
+    Routing Table = WAN2.
+
+
+
+STEP 8: CONFIGURE LATENCY-BASED FAILOVER (NETWATCH)
+=====================================================
+If an ISP is online but experiencing terrible latency (e.g., > 150ms due to jitter or ISP congestion), Netwatch will automatically disable the recursive link, triggering the failover.
+
+Navigate to Tools -> Netwatch.
+    Monitor WAN1 Latency:
+    Click +
+    Under Host:
+    Host = 1.1.1.1
+    Type = icmp
+    Interval = 00:00:05
+    Thr. Max Latency = 150ms.
+
+Under the Down script tab, paste:
+/ip/route/disable [find where gateway=1.1.1.1 and distance=1]
+/log warning "WAN1 Latency high or down! Switching LAN1 to WAN2."
+
+Under the Up script tab, paste:
+/ip/route/enable [find where gateway=1.1.1.1 and distance=1]
+/log info "WAN1 Latency stable. LAN1 returned to WAN1."
+
+Click OK.
+
+    Monitor WAN2 Latency:
+    Click +
+    Under Host:
+    Host = 8.8.8.8
+    Type = icmp
+    Interval = 00:00:05
+    Thr. Max Latency = 150ms.
+
+Under the Down script tab, paste:
+/ip/route/disable [find where gateway=8.8.8.8 and distance=1]
+/log warning "WAN2 Latency high or down! Switching LAN2 to WAN1."
+
+Under the Up script tab, paste:
+/ip/route/enable [find where gateway=8.8.8.8 and distance=1]
+/log info "WAN2 Latency stable. LAN2 returned to WAN2."
+
+Click OK.
+
+
+STEP 5: CONFIGURE NAT MASQUERADE
+===================================
+Navigate to IP -> Firewall -> NAT tab.
+    Click +
+    Under General:
+    Chain = srcnat
+    Out. Interface = WAN1. 
+
+    Under Action:
+    Action = masquerade.
+    Click OK
+
+    Click +
+    Under General:
+    Chain = srcnat
+    Out. Interface = WAN2
+
+    Under Action:
+    Action = masquerade.
+    Click OK.
+
