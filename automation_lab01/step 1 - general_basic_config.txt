@@ -1,0 +1,257 @@
+******************** R1_config********************
+en
+conf t
+hostname R1
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+int g4/0
+description MANAGMENT_LINK
+ip add 192.168.122.2 255.255.255.0
+no shut
+end
+wr
+
+
+============================================
+
+********************R2_config********************
+
+en
+conf t
+hostname R2
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+int g4/0
+description MANAGMENT_LINK
+ip add 192.168.122.3 255.255.255.0
+no shut
+end
+wr
+
+
+============================================
+
+********************R3_config********************
+
+en
+conf t
+hostname R3
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+int g4/0
+description MANAGMENT_LINK
+ip add 192.168.122.4 255.255.255.0
+no shut
+end
+wr
+
+
+******************** SERVER_config********************
+en
+conf t
+hostname SERVER
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+int g1/0
+description MANAGMENT_LINK
+ip add 192.168.122.8 255.255.255.0
+no shut
+end
+wr
+
+
+============================================
+
+********************SW1_config********************
+
+en
+conf t
+hostname SW1
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+vlan 99
+name MANAGEMENT_LAN
+
+int vlan 99
+description MANAGEMENT_LAN
+ip add 192.168.122.5 255.255.255.0
+no shut
+
+int g0/1
+description MANAGMENT_LINK
+switchport access vlan 99
+no shut
+end
+wr
+
+
+============================================
+
+********************SW2_config********************
+
+en
+conf t
+hostname SW2
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+vlan 99
+name MANAGEMENT_LAN
+
+int vlan 99
+description MANAGEMENT_LAN
+ip add 192.168.122.6 255.255.255.0
+no shut
+
+int g0/1
+description MANAGMENT_LINK
+switchport access vlan 99
+no shut
+end
+wr
+
+
+
+============================================
+
+********************SW3_config********************
+
+en
+conf t
+hostname SW3
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+vlan 99
+name MANAGEMENT_LAN
+
+int vlan 99
+description MANAGEMENT_LAN
+ip add 192.168.122.7 255.255.255.0
+no shut
+
+int g0/1
+description MANAGMENT_LINK
+switchport access vlan 99
+no shut
+end
+wr
+
+
+********************mgmt_SW********************
+
+en
+conf t
+hostname mgmt-SW
+enable secret cisco
+username obinna privilege 15 secret cisco
+ip domain-name obinna.local
+crypto key generate rsa modulus 1024
+
+ip ssh ver 2
+lin vty 0 4
+login local
+transport input ssh
+lin con 0
+login local
+logging synchronous
+exit
+
+vlan 99
+name MANAGEMENT_LAN
+
+int vlan 99
+description MANAGEMENT_LAN
+ip add 192.168.122.253 255.255.255.0
+no shut
+
+int ra g0/0
+switchport access vlan 99
+no shut
+end
+wr
+
+
+

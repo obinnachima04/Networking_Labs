@@ -1,0 +1,42 @@
+int g1/0
+description LINK_TO_R3
+ip add 192.168.160.1 255.255.255.252
+no shut
+ip ospf 1 area 0
+
+int g2/0
+description LINK_TO_R1
+ip add 192.168.140.2 255.255.255.252
+no shut
+ip ospf 1 area 0
+
+router ospf 1
+passive-interface l0
+
+int l0
+ip add 2.2.2.2 255.255.255.255
+ip ospf 1 area 0
+no shut
+
+int g0/0
+no shut
+
+int g0/0.10
+description CUSTOMER-CARE-vlan10 gateway
+encapsulation dot1q 10
+ip add 172.16.10.1 255.255.255.0
+ip helper-add 10.1.1.2
+ip ospf 2 area 2
+
+int g0/0.20
+description ADMIN-vlan20 gateway
+encapsulation dot1q 20
+ip add 172.16.20.1 255.255.255.0
+ip helper-add 10.1.1.2
+ip ospf 2 area 2
+
+router ospf 1
+redistribute ospf 2 subnets
+
+router ospf 2
+redistribute ospf 1 subnets

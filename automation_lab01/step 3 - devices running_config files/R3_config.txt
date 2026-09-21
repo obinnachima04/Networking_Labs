@@ -1,0 +1,45 @@
+int g3/0
+description LINK_TO_R1
+ip add 192.168.150.2 255.255.255.252
+ip ospf 1 area 0
+no shut
+
+int g1/0
+description LINK_TO_R2
+ip add 192.168.160.2 255.255.255.252
+no shut
+ip ospf 1 area 0
+
+int l0
+ip add 3.3.3.3 255.255.255.255
+ip ospf 1 area 0
+
+router ospf 1
+passive-interface l0
+
+int g0/0
+no shut
+
+int g0/0.11
+description ACCOUNTS-DEPT-vlan11 gateway
+encapsulation dot1q 11
+ip add 172.16.11.1 255.255.255.0
+ip helper-add 10.1.1.2
+
+int g0/0.21
+description MARKETING-DEPT-vlan21 gateway
+encapsulation dot1q 21
+ip add 172.16.21.1 255.255.255.0
+ip helper-add 10.1.1.2
+
+router eigrp 1
+network 172.16.11.0 0.0.0.255
+network 172.16.21.0 0.0.0.255
+no auto-summary
+
+router ospf 1
+redistribute eigrp 1 subnets
+
+router eigrp 1
+redistribute ospf 1 metric 10000 1000 255 1 1500
+

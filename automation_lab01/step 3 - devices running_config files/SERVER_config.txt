@@ -1,0 +1,38 @@
+lin con 0
+logging synchronous
+exit
+
+int l0
+ip add 4.4.4.4 255.255.255.255
+
+int g0/0
+ip add 10.1.1.2 255.255.255.0
+description link-to-R1
+no shut
+ip ospf 1 area 0
+
+ip dhcp excluded-address 172.16.10.1 172.16.10.10
+ip dhcp excluded-address 172.16.20.1 172.16.20.10
+ip dhcp excluded-address 172.16.11.1 172.16.11.10
+ip dhcp excluded-address 172.16.21.1 172.16.21.10
+
+
+ip dhcp pool F1MGMT-VLAN10-POOL
+network 172.16.10.0 255.255.255.0
+default-router 172.16.10.1
+dns-server 8.8.8.8 1.1.1.1
+
+ip dhcp pool F1ACCTS-VLAN20-POOL
+network 172.16.20.0 255.255.255.0
+default-router 172.16.20.1
+dns-server 8.8.8.8 1.1.1.1
+
+ip dhcp pool F2MGMT-VLAN11-POOL
+network 172.16.11.0 255.255.255.0
+default-router 172.16.11.1
+dns-server 8.8.8.8 1.1.1.1
+
+ip dhcp pool F1ACCTS-VLAN21-POOL
+network 172.16.21.0 255.255.255.0
+default-router 172.16.21.1
+dns-server 8.8.8.8 1.1.1.1
